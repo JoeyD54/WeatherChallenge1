@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tenDayLabel"
+        android:text="10 Day Forecast"
+        android:textAlignment="center"
+        android:background="@android:color/darker_gray"
+        android:textSize="25dp"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp"/>
+
+    <TextView
+        android:id="@+id/DayLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="20dp"
+        android:layout_below="@id/tenDayLabel"
+        android:maxLines="20"
+        android:paddingBottom="5dp"
+        android:paddingLeft="10dp"
+        android:scrollbars="vertical" />
+
+</RelativeLayout>
