@@ -36,7 +36,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = MainActivity.class.getSimpleName();
-    public static final int REQUEST_FINE_LOCATION = 1;
+    public static final int REQUEST_COARSE_LOCATION = 1;
     TextView mCity, mTemperature, mErrorText;
     Button mTenDayBut, mGetCityTemp;
     String cityText, temperatureText, condUrl, city, state, stateCity;
@@ -61,62 +61,58 @@ public class MainActivity extends AppCompatActivity {
         getLocationData();
 
 
-/*Initial permission check
-        if(ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)){
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
-            }else{
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
-            }
-        }else{
-            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            try{
-                stateCity = getLocation(location.getLatitude(), location.getLongitude());
-            }catch (Exception e){
-                e.printStackTrace();
-                Toast.makeText(MainActivity.this, "Not Found!", Toast.LENGTH_SHORT).show();
-                mErrorText.setText("Location not found. Using default: Detroit, Michigan");
-            }
-        }
-*
-        if(stateCity != null) {
-            splitStateCity = stateCity.split(" ");
-            state = splitStateCity[0];
-            city = splitStateCity[1];
-        }
-        else {
-            city = "Detroit";
-            state = "Michigan";
-            stateCity = state + " " + city;
-            Log.i(TAG, "Defaults have been set");
+//Initial permission check
 
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED){
+            //LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            //Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            //stateCity = getLocation(location.getLatitude(), location.getLongitude());
+            if(stateCity == null) {
+                city = "Detroit";
+                state = "Michigan";
+                stateCity = state + " " + city;
+                Log.i(TAG, "Defaults have been set");
+                mErrorText.setText("Location not found. Using default: Detroit, Michigan");
+            }else{
+                Toast.makeText(MainActivity.this, "error setting location info", Toast.LENGTH_SHORT).show();
+            }
         }
-*/
+
+
         condUrl = "http://api.wunderground.com/api/90645b02d360fe14/conditions/q/" + state + "/" + city + ".json";
 
         mGetCityTemp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getLocationData();
-                /*
+                if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED){
+                    //LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                    //Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    //stateCity = getLocation(location.getLatitude(), location.getLongitude());
+                    //if(stateCity == null || city ==) {
+                    city = "Detroit";
+                    state = "Michigan";
+                    stateCity = state + " " + city;
+                    Log.i(TAG, "Defaults have been set");
+                    mErrorText.setText("Location not found. Using default: Detroit, Michigan");
+                    //}else{
+                    //    Toast.makeText(MainActivity.this, "Error setting city and state info",Toast.LENGTH_SHORT).show();
+                    //}
+                }
                 if (stateCity != null) {
                     condUrl = "http://api.wunderground.com/api/90645b02d360fe14/conditions/q/" + state + "/" + city + ".json";
-                    JsonCall(condUrl);
+                    jsonCall(condUrl);
                 } else {
                     Toast.makeText(MainActivity.this, "Trouble getting location. Please reset", Toast.LENGTH_SHORT).show();
                 }
-                */
             }
         });
 
-        mTenDayBut.setOnClickListener(new View.OnClickListener() {
+        mTenDayBut.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onClick(View view) {
+            public void onClick(View view){
                 if(stateCity != null){
                     Intent i = new Intent(getApplicationContext(), TenDayForecast.class);
                     i.putExtra("key", stateCity);
@@ -127,9 +123,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
+    /*
+    Function: getLocationData
+    Use: checks for if we have permission to use location data. If not, go ask.
+    Arguments: none
+    returns: none
+    ******************************************/
     public void getLocationData(){
         if(ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -153,6 +154,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /*
+     Function: checkLocationPermission
+     Use: Request for permission to access location data. If already allowed, skip.
+     Arguments: none
+     returns: True/False
+     ******************************************/
     public boolean checkLocationPermission(){
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED){
@@ -186,25 +193,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //This is here to request for gps permission again if the user declined.
+    /*
+     Function: onRequestPermissionsResult
+     Use: check for if user allowed permissions. if they didn't, ask again and detail why it's needed.
+     Arguments: int[], String, int[]
+     returns: none
+     ******************************************/
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch(requestCode){
-            case REQUEST_FINE_LOCATION:{
+            case REQUEST_COARSE_LOCATION:{
                 if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                     //Permission granted. Continue on.
-                    if(ContextCompat.checkSelfPermission(MainActivity.this,
-                            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
-                        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                        Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                        try{
-                            stateCity = getLocation(location.getLatitude(), location.getLongitude());
-                        }catch (Exception e){
-                            e.printStackTrace();
-                            Toast.makeText(MainActivity.this, "Not Found!", Toast.LENGTH_SHORT).show();
-                            mErrorText.setText("Location not found. Using default: Detroit, Michigan");
-                        }
-                    }
                 }else{
                     //Permission not granted. Print error.
                     Toast.makeText(this, "No Permission Granted!", Toast.LENGTH_SHORT).show();
@@ -214,7 +214,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //Get nearest city
+    /*
+     Function: getLocation
+     Use: Get location data via reverse geocoding from coordinates.
+     Arguments: double, double
+     returns: stateCity
+     ******************************************/
     public String getLocation(double lat, double lon) {
         List<Address> addressList;
 
@@ -234,8 +239,13 @@ public class MainActivity extends AppCompatActivity {
         return stateCity;
     }
 
-    //Get city and temp of location and print it.
-    public void JsonCall(String condUrl){
+    /*
+     Function: jsonCall
+     Use: Call API, parse JSON data, and print
+     Arguments: String
+     returns: return none.
+     ******************************************/
+    public void jsonCall(String condUrl){
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 Request.Method.GET, condUrl, null, new Response.Listener<JSONObject>() {
             @Override
