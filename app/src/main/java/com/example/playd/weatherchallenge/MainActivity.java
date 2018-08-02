@@ -2,6 +2,7 @@ package com.example.playd.weatherchallenge;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -10,6 +11,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     String cityText, temperatureText, condUrl, city, state, stateCity;
     String[] splitStateCity;
     RequestQueue requestQueue;
+    private final int MY_LOCATION_PERMISSION = 100;
 
 
     @Override
@@ -55,7 +58,10 @@ public class MainActivity extends AppCompatActivity {
         requestQueue = Volley.newRequestQueue(this);
 
 
-//Initial permission check
+        getLocationData();
+
+
+/*Initial permission check
         if(ContextCompat.checkSelfPermission(MainActivity.this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
@@ -77,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 mErrorText.setText("Location not found. Using default: Detroit, Michigan");
             }
         }
-
+*
         if(stateCity != null) {
             splitStateCity = stateCity.split(" ");
             state = splitStateCity[0];
@@ -90,18 +96,21 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "Defaults have been set");
 
         }
-
+*/
         condUrl = "http://api.wunderground.com/api/90645b02d360fe14/conditions/q/" + state + "/" + city + ".json";
 
         mGetCityTemp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(stateCity != null){
+                getLocationData();
+                /*
+                if (stateCity != null) {
+                    condUrl = "http://api.wunderground.com/api/90645b02d360fe14/conditions/q/" + state + "/" + city + ".json";
                     JsonCall(condUrl);
-                }
-                else{
+                } else {
                     Toast.makeText(MainActivity.this, "Trouble getting location. Please reset", Toast.LENGTH_SHORT).show();
                 }
+                */
             }
         });
 
@@ -121,6 +130,61 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void getLocationData(){
+        if(ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+/*            fusedLocationProviderClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            if (location != null) {
+                                //Do location logic here.
+
+                                cityTextView.setText(String.valueOf(location.getLatitude()));
+                                temperatureTextView.setText(String.valueOf(location.getLongitude()));
+                            }
+                            cityTextView.setText(String.valueOf(location));
+                        }
+                    });
+                    */
+        } else {
+            checkLocationPermission();
+        }
+    }
+
+    public boolean checkLocationPermission(){
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED){
+            //Check if we should show an explanation
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)){
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.title_location_permission)
+                        .setMessage(R.string.text_location_permission)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                //Prompt the user once explanation has been shown
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                                        MY_LOCATION_PERMISSION);
+                            }})
+                        .create()
+                        .show();
+            } else {
+                //No explanation needed. Just show request
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                        MY_LOCATION_PERMISSION);
+            }
+            return false;
+        } else {
+            return true;
+        }
+    }
 
     //This is here to request for gps permission again if the user declined.
     @Override
@@ -128,9 +192,9 @@ public class MainActivity extends AppCompatActivity {
         switch(requestCode){
             case REQUEST_FINE_LOCATION:{
                 if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    //Permission granted. Continue on.
                     if(ContextCompat.checkSelfPermission(MainActivity.this,
                             Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
-
                         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                         Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                         try{
@@ -142,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }else{
+                    //Permission not granted. Print error.
                     Toast.makeText(this, "No Permission Granted!", Toast.LENGTH_SHORT).show();
                     mErrorText.setText("GPS not allowed. Using default: Detroit, Michigan");
                 }
@@ -161,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
                 city = addressList.get(0).getLocality();
                 state = addressList.get(0).getAdminArea();
                 stateCity = state + " " + city;
+                Toast.makeText(this, stateCity, Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -201,4 +267,6 @@ public class MainActivity extends AppCompatActivity {
         requestQueue.add(jsonObjectRequest);
     }
 }
+
+
 

@@ -1,3 +1,17 @@
 <resources>
+    <!--                 FOR UI                           -->
     <string name="app_name">WeatherChallenge</string>
+    <string name="city_temp_header">City and Temperature</string>
+    <string name="temperature_label">Temperature: </string>
+    <string name="city_label">City: </string>
+    <string name="ten_day_forecast_button">10 Day Forecast</string>
+    <string name="get_location_button">Get Location</string>
+    <string name="city_temp_button">Get City and Temp</string>
+    <!--                                                  -->
+
+    <string name="title_location_permission">Location Permission</string>
+    <string name="text_location_permission">
+        Location Service required to get accurate weather data.</string>
+    <string name="ok">OK</string>
+
 </resources>
